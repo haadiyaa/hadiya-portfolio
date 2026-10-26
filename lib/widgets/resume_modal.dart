@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
+import '../utils/file_download.dart';
 
 class ResumeModal extends StatelessWidget {
   final bool isDark;
@@ -12,74 +12,6 @@ class ResumeModal extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => ResumeModal(isDark: isDark),
-    );
-  }
-
-  static const String fullResumeText = '''
-Haadiya CT
-Flutter Developer
-Kozhikode, Kerala, India | haadiyact@gmail.com | linkedin.com
-
-PROFESSIONAL SUMMARY
-Flutter Developer with 3+ years of experience building cross-platform applications and enterprise ERP software with Flutter. Experienced in REST API integration, offline-first data handling with SQLite, state management with Riverpod, BLoC, Provider and GetX, and Clean Architecture. Skilled in turning Figma designs into responsive UIs and maintaining production-grade ERP modules across Sales, Inventory, CRM and Finance.
-
-TECHNICAL SKILLS
-• Languages: Dart, C#, XAML, HTML, CSS
-• Frameworks and Platforms: Flutter, .NET, WPF, Cross-Platform Development (Android, iOS, Desktop, Web), Mobile Application Development
-• State Management and Architecture: Riverpod, Hooks Riverpod, BLoC, Provider, GetX, Flutter Hooks, Clean Architecture, MVVM, MVC, API-Driven Development
-• Database and Storage: SQLite, SQFlite, Hive, Firebase
-• APIs and Tools: REST API Integration, Git, GitHub, Postman, Figma, Freezed
-
-PROFESSIONAL EXPERIENCE
-Flutter Developer | Screl Info Pvt. Ltd. | Kozhikode, Kerala | Nov 2024 – Present
-• Develop and maintain cross-platform ERP applications using Flutter and Dart, covering Sales, Inventory, CRM and Finance modules.
-• Built Isselo, a restaurant management ERP for Android, iOS and desktop, using Clean Architecture and Riverpod, with offline SQLite storage and automatic server synchronization.
-• Developed SincA Reports, a Flutter application for administrators to monitor business reports and analytics from the SincA ERP ecosystem through REST API integration.
-• Develop the web front end and WPF desktop application for SincA ERP using C#, .NET and XAML.
-• Integrate REST APIs and collaborate with backend teams to implement and optimize API-driven features.
-• Build reusable Flutter components and apply state management to improve maintainability and performance.
-
-Flutter Developer Intern | Self Stack | Kozhikode, Kerala | Sept 2023 – Nov 2024
-• Developed Flutter applications using Provider, GetX and BLoC state management.
-• Implemented user interfaces from Figma designs and integrated them with backend REST APIs.
-• Worked with HTML and CSS.
-• Handled debugging, API integration and maintenance on real-world application features.
-• Collaborated with team members to troubleshoot issues and deliver features within project requirements.
-
-PROJECTS
-• Isselo (Screl Info Pvt. Ltd.) | Flutter, Dart, Riverpod, SQLite, Clean Architecture
-  Restaurant management ERP with Sales, CRM, HR and accounting modules, built for Android, iOS and desktop. Implemented offline data storage with automatic server synchronization.
-• SincA ERP (Screl Info Pvt. Ltd.) | C#, .NET, WPF, XAML
-  Enterprise ERP covering Sales, Stock, Inventory, Finance, HRM, CRM and Procurement with web front end and WPF desktop application.
-• SincA Reports (Screl Info Pvt. Ltd.) | Flutter, Dart, REST APIs
-  Monitoring application for administrators to visualize and track real-time business analytics and reports.
-• Hidhayah App | Flutter, Dart
-  Islamic application with prayer time calculation, Qibla direction using device sensors, and educational resources.
-
-EDUCATION
-B.Sc. in Computer Science | Providence Women's College, Kozhikode (University of Calicut) | 2020 – 2023 | CGPA: 7.6
-
-ADDITIONAL INFORMATION
-• Core strengths: Cross-platform development, ERP application development, API integration, offline-first data handling, UI implementation, debugging and application maintenance.
-• Availability: Open to Flutter Developer and Mobile Application developer opportunities.
-''';
-
-  void _copyToClipboard(BuildContext context) {
-    Clipboard.setData(const ClipboardData(text: fullResumeText));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: AppTheme.accentEmerald, size: 20),
-            SizedBox(width: 10),
-            Text('Full resume copied to clipboard!'),
-          ],
-        ),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        backgroundColor: isDark ? AppTheme.darkCardHover : AppTheme.lightCardHover,
-        duration: const Duration(seconds: 2),
-      ),
     );
   }
 
@@ -121,16 +53,29 @@ ADDITIONAL INFORMATION
                 children: [
                   const Icon(Icons.description_rounded, color: AppTheme.primaryCyan, size: 24),
                   const SizedBox(width: 12),
-                  Text(
-                    'Haadiya CT — Resume Preview',
-                    style: TextStyle(
-                      color: textPrimary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                  Expanded(
+                    child: Text(
+                      'Haadiya CT — Resume Preview',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: isMobile ? 16 : 18,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   IconButton(
+                    tooltip: 'Open PDF in new tab',
+                    onPressed: () {
+                      launchUrl(
+                        Uri.parse('resume.pdf'),
+                        webOnlyWindowName: '_blank',
+                      );
+                    },
+                    icon: Icon(Icons.open_in_new_rounded, color: textSecondary, size: 20),
+                  ),
+                  IconButton(
+                    tooltip: 'Close',
                     onPressed: () => Navigator.pop(context),
                     icon: Icon(Icons.close_rounded, color: textSecondary),
                   ),
@@ -259,41 +204,110 @@ ADDITIONAL INFORMATION
 
             // Footer actions
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 24, vertical: 14),
               decoration: BoxDecoration(
                 color: isDark ? Colors.black26 : Colors.grey.withValues(alpha: 0.04),
                 borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
                 border: Border(top: BorderSide(color: border)),
               ),
-              child: Row(
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => _copyToClipboard(context),
-                    icon: const Icon(Icons.copy_rounded, size: 16),
-                    label: const Text('Copy Resume Text'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: textPrimary,
-                      side: BorderSide(color: border),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              child: isMobile
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            downloadResumePdf();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Row(
+                                  children: [
+                                    Icon(Icons.check_circle_rounded, color: AppTheme.accentEmerald, size: 20),
+                                    SizedBox(width: 10),
+                                    Text('Downloading resume.pdf...'),
+                                  ],
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                backgroundColor: isDark ? AppTheme.darkCardHover : AppTheme.lightCardHover,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.download_rounded, size: 18),
+                          label: const Text('Download Resume'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: textPrimary,
+                            side: BorderSide(color: border),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            final mailto = Uri.parse('mailto:haadiyact@gmail.com?subject=Job%20Opportunity%20for%20Haadiya%20CT');
+                            launchUrl(mailto);
+                          },
+                          icon: const Icon(Icons.mail_outline_rounded, size: 18),
+                          label: const Text('Hire Haadiya'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryCyan,
+                            foregroundColor: const Color(0xFF090D16),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            downloadResumePdf();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Row(
+                                  children: [
+                                    Icon(Icons.check_circle_rounded, color: AppTheme.accentEmerald, size: 20),
+                                    SizedBox(width: 10),
+                                    Text('Downloading resume.pdf...'),
+                                  ],
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                backgroundColor: isDark ? AppTheme.darkCardHover : AppTheme.lightCardHover,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.download_rounded, size: 18),
+                          label: const Text('Download Resume'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: textPrimary,
+                            side: BorderSide(color: border),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                        ),
+                        const Spacer(),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            final mailto = Uri.parse('mailto:haadiyact@gmail.com?subject=Job%20Opportunity%20for%20Haadiya%20CT');
+                            launchUrl(mailto);
+                          },
+                          icon: const Icon(Icons.mail_outline_rounded, size: 18),
+                          label: const Text('Hire Haadiya'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryCyan,
+                            foregroundColor: const Color(0xFF090D16),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const Spacer(),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      final mailto = Uri.parse('mailto:haadiyact@gmail.com?subject=Job%20Opportunity%20for%20Haadiya%20CT');
-                      launchUrl(mailto);
-                    },
-                    icon: const Icon(Icons.mail_outline_rounded, size: 16),
-                    label: const Text('Hire Haadiya'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryCyan,
-                      foregroundColor: const Color(0xFF090D16),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ],
         ),
