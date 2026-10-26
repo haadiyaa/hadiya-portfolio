@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'providers/app_providers.dart';
 import 'theme/app_theme.dart';
 import 'widgets/nav_bar.dart';
 import 'widgets/hero_section.dart';
@@ -14,199 +17,153 @@ import 'widgets/resume_modal.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const PortfolioApp());
+  runApp(const ProviderScope(child: PortfolioApp()));
 }
 
-class PortfolioApp extends StatefulWidget {
+class PortfolioApp extends ConsumerWidget {
   const PortfolioApp({super.key});
 
   @override
-  State<PortfolioApp> createState() => _PortfolioAppState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = ref.watch(isDarkModeProvider);
 
-class _PortfolioAppState extends State<PortfolioApp> {
-  ThemeMode _themeMode = ThemeMode.dark;
-
-  void _toggleTheme() {
-    setState(() {
-      _themeMode = _themeMode == ThemeMode.dark
-          ? ThemeMode.light
-          : ThemeMode.dark;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Haadiya CT | Flutter Developer',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
-      themeMode: _themeMode,
-      home: PortfolioHomePage(
-        isDark: _themeMode == ThemeMode.dark,
-        onToggleTheme: _toggleTheme,
-      ),
+      themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+      home: const PortfolioHomePage(),
     );
   }
 }
 
-class PortfolioHomePage extends StatefulWidget {
-  final bool isDark;
-  final VoidCallback onToggleTheme;
-
-  const PortfolioHomePage({
-    super.key,
-    required this.isDark,
-    required this.onToggleTheme,
-  });
+class PortfolioHomePage extends HookConsumerWidget {
+  const PortfolioHomePage({super.key});
 
   @override
-  State<PortfolioHomePage> createState() => _PortfolioHomePageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = ref.watch(isDarkModeProvider);
 
-class _PortfolioHomePageState extends State<PortfolioHomePage> {
-  final ScrollController _scrollController = ScrollController();
+    final scrollController = useScrollController();
 
-  final GlobalKey _heroKey = GlobalKey();
-  final GlobalKey _experienceKey = GlobalKey();
-  final GlobalKey _projectsKey = GlobalKey();
-  final GlobalKey _skillsKey = GlobalKey();
-  final GlobalKey _educationKey = GlobalKey();
-  final GlobalKey _contactKey = GlobalKey();
+    final heroKey = useMemoized(() => GlobalKey(), const []);
+    final experienceKey = useMemoized(() => GlobalKey(), const []);
+    final projectsKey = useMemoized(() => GlobalKey(), const []);
+    final skillsKey = useMemoized(() => GlobalKey(), const []);
+    final educationKey = useMemoized(() => GlobalKey(), const []);
+    final contactKey = useMemoized(() => GlobalKey(), const []);
 
-  bool _showBackToTop = false;
+    final showBackToTop = ref.watch(showBackToTopProvider);
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(() {
-      if (_scrollController.offset > 400 && !_showBackToTop) {
-        setState(() => _showBackToTop = true);
-      } else if (_scrollController.offset <= 400 && _showBackToTop) {
-        setState(() => _showBackToTop = false);
+    // Listen to scroll offset to toggle back-to-top visibility
+    useEffect(() {
+      void listener() {
+        final shouldShow = scrollController.offset > 400;
+        if (shouldShow != ref.read(showBackToTopProvider)) {
+          ref.read(showBackToTopProvider.notifier).state = shouldShow;
+        }
       }
-    });
-  }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
+      scrollController.addListener(listener);
+      return () => scrollController.removeListener(listener);
+    }, [scrollController]);
 
-  void _scrollToKey(GlobalKey key) {
-    final context = key.currentContext;
-    if (context != null) {
-      Scrollable.ensureVisible(
-        context,
+    void scrollToKey(GlobalKey key) {
+      final ctx = key.currentContext;
+      if (ctx != null) {
+        Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 650),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    }
+
+    void navigateToSection(int index) {
+      final keys = [heroKey, experienceKey, projectsKey, skillsKey, educationKey, contactKey];
+      if (index >= 0 && index < keys.length) {
+        scrollToKey(keys[index]);
+      }
+    }
+
+    void scrollToTop() {
+      scrollController.animateTo(
+        0,
         duration: const Duration(milliseconds: 650),
         curve: Curves.easeInOutCubic,
       );
     }
-  }
 
-  void _navigateToSection(int index) {
-    switch (index) {
-      case 0:
-        _scrollToKey(_heroKey);
-        break;
-      case 1:
-        _scrollToKey(_experienceKey);
-        break;
-      case 2:
-        _scrollToKey(_projectsKey);
-        break;
-      case 3:
-        _scrollToKey(_skillsKey);
-        break;
-      case 4:
-        _scrollToKey(_educationKey);
-        break;
-      case 5:
-        _scrollToKey(_contactKey);
-        break;
+    void openResume() {
+      ResumeModal.show(context, isDark);
     }
-  }
 
-  void _scrollToTop() {
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 650),
-      curve: Curves.easeInOutCubic,
-    );
-  }
-
-  void _openResume() {
-    ResumeModal.show(context, widget.isDark);
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: NavBar(
-        isDark: widget.isDark,
-        onToggleTheme: widget.onToggleTheme,
-        onNavigateToSection: _navigateToSection,
-        onOpenResume: _openResume,
-        onOpenContact: () => _scrollToKey(_contactKey),
+        isDark: isDark,
+        onToggleTheme: () =>
+            ref.read(isDarkModeProvider.notifier).state = !isDark,
+        onNavigateToSection: navigateToSection,
+        onOpenResume: openResume,
+        onOpenContact: () => scrollToKey(contactKey),
       ),
       body: SingleChildScrollView(
-        controller: _scrollController,
+        controller: scrollController,
         child: Column(
           children: [
             // 0. Hero Section & About
             Container(
-              key: _heroKey,
+              key: heroKey,
               child: HeroSection(
-                isDark: widget.isDark,
-                onExploreProjects: () => _scrollToKey(_projectsKey),
-                onOpenResume: _openResume,
-                onContactMe: () => _scrollToKey(_contactKey),
+                isDark: isDark,
+                onExploreProjects: () => scrollToKey(projectsKey),
+                onOpenResume: openResume,
+                onContactMe: () => scrollToKey(contactKey),
               ),
             ),
 
             // Highlights & Core Engineering Pillars
-            HighlightsSection(isDark: widget.isDark),
+            HighlightsSection(isDark: isDark),
 
             // 1. Work Experience Section
             Container(
-              key: _experienceKey,
-              child: ExperienceSection(isDark: widget.isDark),
+              key: experienceKey,
+              child: ExperienceSection(isDark: isDark),
             ),
 
             // 2. Featured Projects Section
             Container(
-              key: _projectsKey,
-              child: ProjectsSection(isDark: widget.isDark),
+              key: projectsKey,
+              child: ProjectsSection(isDark: isDark),
             ),
 
             // 3. Technical Skills Section
             Container(
-              key: _skillsKey,
-              child: SkillsSection(isDark: widget.isDark),
+              key: skillsKey,
+              child: SkillsSection(isDark: isDark),
             ),
 
             // 4. Education & Academic Background
             Container(
-              key: _educationKey,
-              child: EducationSection(isDark: widget.isDark),
+              key: educationKey,
+              child: EducationSection(isDark: isDark),
             ),
 
             // 5. Contact & Connect Section
             Container(
-              key: _contactKey,
-              child: ContactSection(isDark: widget.isDark),
+              key: contactKey,
+              child: ContactSection(isDark: isDark),
             ),
 
             // Footer Section
-            FooterSection(isDark: widget.isDark, onScrollToTop: _scrollToTop),
+            FooterSection(isDark: isDark, onScrollToTop: scrollToTop),
           ],
         ),
       ),
-      floatingActionButton: _showBackToTop
+      floatingActionButton: showBackToTop
           ? FloatingActionButton.small(
-              onPressed: _scrollToTop,
+              onPressed: scrollToTop,
               backgroundColor: AppTheme.primaryCyan,
               foregroundColor: const Color(0xFF090D16),
               elevation: 4,

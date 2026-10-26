@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import '../theme/app_theme.dart';
 
 class NavBar extends StatelessWidget implements PreferredSizeWidget {
@@ -103,12 +104,12 @@ class NavBar extends StatelessWidget implements PreferredSizeWidget {
 
               // Desktop Menu
               if (!isMobile) ...[
-                _NavItem(title: 'About', index: 0, onTap: () => onNavigateToSection(0), isDark: isDark),
-                _NavItem(title: 'Experience', index: 1, onTap: () => onNavigateToSection(1), isDark: isDark),
-                _NavItem(title: 'Projects', index: 2, onTap: () => onNavigateToSection(2), isDark: isDark),
-                _NavItem(title: 'Skills', index: 3, onTap: () => onNavigateToSection(3), isDark: isDark),
-                _NavItem(title: 'Education', index: 4, onTap: () => onNavigateToSection(4), isDark: isDark),
-                _NavItem(title: 'Contact', index: 5, onTap: () => onNavigateToSection(5), isDark: isDark),
+                _NavItem(title: 'About', onTap: () => onNavigateToSection(0), isDark: isDark),
+                _NavItem(title: 'Experience', onTap: () => onNavigateToSection(1), isDark: isDark),
+                _NavItem(title: 'Projects', onTap: () => onNavigateToSection(2), isDark: isDark),
+                _NavItem(title: 'Skills', onTap: () => onNavigateToSection(3), isDark: isDark),
+                _NavItem(title: 'Education', onTap: () => onNavigateToSection(4), isDark: isDark),
+                _NavItem(title: 'Contact', onTap: () => onNavigateToSection(5), isDark: isDark),
                 const SizedBox(width: 12),
                 // Resume Button
                 OutlinedButton.icon(
@@ -302,47 +303,40 @@ class NavBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-class _NavItem extends StatefulWidget {
+/// Nav item with hover effect — now uses HookWidget + useState instead of StatefulWidget.
+class _NavItem extends HookWidget {
   final String title;
-  final int index;
   final VoidCallback onTap;
   final bool isDark;
 
   const _NavItem({
     required this.title,
-    required this.index,
     required this.onTap,
     required this.isDark,
   });
 
   @override
-  State<_NavItem> createState() => _NavItemState();
-}
-
-class _NavItemState extends State<_NavItem> {
-  bool isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final defaultColor = widget.isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
-    final hoverColor = widget.isDark ? AppTheme.primaryCyan : AppTheme.primaryBlue;
+    final isHovered = useState(false);
+    final defaultColor = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
+    final hoverColor = isDark ? AppTheme.primaryCyan : AppTheme.primaryBlue;
 
     return MouseRegion(
-      onEnter: (_) => setState(() => isHovered = true),
-      onExit: (_) => setState(() => isHovered = false),
+      onEnter: (_) => isHovered.value = true,
+      onExit: (_) => isHovered.value = false,
       child: InkWell(
-        onTap: widget.onTap,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 150),
             style: TextStyle(
-              color: isHovered ? hoverColor : defaultColor,
-              fontWeight: isHovered ? FontWeight.w600 : FontWeight.w500,
+              color: isHovered.value ? hoverColor : defaultColor,
+              fontWeight: isHovered.value ? FontWeight.w600 : FontWeight.w500,
               fontSize: 14,
             ),
-            child: Text(widget.title),
+            child: Text(title),
           ),
         ),
       ),

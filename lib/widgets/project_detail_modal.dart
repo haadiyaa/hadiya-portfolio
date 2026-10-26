@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/project_model.dart';
 import '../theme/app_theme.dart';
+import 'shared_widgets.dart';
 
 class ProjectDetailModal extends StatelessWidget {
   final ProjectModel project;
@@ -197,34 +198,13 @@ class ProjectDetailModal extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ...project.highlights.map((h) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(top: 5),
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: project.accentColor,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  h,
-                                  style: TextStyle(
-                                    color: textPrimary,
-                                    fontSize: 14,
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )),
+                    ...project.highlights.map(
+                      (h) => BulletPointRow(
+                        text: h,
+                        dotColor: project.accentColor,
+                        textColor: textPrimary,
+                      ),
+                    ),
 
                     const SizedBox(height: 20),
 
@@ -242,24 +222,9 @@ class ProjectDetailModal extends StatelessWidget {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: project.techStack.map((tech) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isDark ? AppTheme.darkCardHover : AppTheme.lightCardHover,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: border),
-                          ),
-                          child: Text(
-                            tech,
-                            style: TextStyle(
-                              color: textPrimary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                      children: project.techStack
+                          .map((tech) => TechTagChip(label: tech, isDark: isDark))
+                          .toList(),
                     ),
                   ],
                 ),

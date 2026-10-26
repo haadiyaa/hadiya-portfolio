@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'shared_widgets.dart';
 
 class HighlightsSection extends StatelessWidget {
   final bool isDark;
@@ -8,11 +9,6 @@ class HighlightsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isMobile = size.width < 900;
-    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
-    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
-
     final pillars = [
       _PillarItem(
         title: 'Enterprise ERP Architecture',
@@ -48,82 +44,34 @@ class HighlightsSection extends StatelessWidget {
       ),
     ];
 
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 20 : 60,
-        vertical: 40,
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryCyan,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'CORE PILLARS',
-                    style: TextStyle(
-                      color: AppTheme.primaryCyan,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Architected for Stability, Built for Growth',
-                style: TextStyle(
-                  color: textPrimary,
-                  fontSize: isMobile ? 26 : 34,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.8,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Key engineering foundations that drive every application from prototype to mission-critical production.',
-                style: TextStyle(
-                  color: textSecondary,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 32),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isWide = constraints.maxWidth > 700;
-                  final cardWidth = isWide ? (constraints.maxWidth - 20) / 2 : constraints.maxWidth;
-                  return Wrap(
-                    spacing: 20,
-                    runSpacing: 20,
-                    children: pillars.map((pillar) {
-                      return SizedBox(
-                        width: cardWidth,
-                        child: _PillarCard(
-                          pillar: pillar,
-                          isDark: isDark,
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-            ],
-          ),
+    return SectionContainer(
+      verticalPadding: 40,
+      children: [
+        SectionHeader(
+          tag: 'CORE PILLARS',
+          title: 'Architected for Stability, Built for Growth',
+          subtitle:
+              'Key engineering foundations that drive every application from prototype to mission-critical production.',
+          isDark: isDark,
         ),
-      ),
+        const SizedBox(height: 32),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 700;
+            final cardWidth = isWide ? (constraints.maxWidth - 20) / 2 : constraints.maxWidth;
+            return Wrap(
+              spacing: 20,
+              runSpacing: 20,
+              children: pillars.map((pillar) {
+                return SizedBox(
+                  width: cardWidth,
+                  child: _PillarCard(pillar: pillar, isDark: isDark),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
     );
   }
 }
@@ -144,7 +92,8 @@ class _PillarItem {
   });
 }
 
-class _PillarCard extends StatefulWidget {
+/// Now uses the reusable [HoverCard] instead of a custom StatefulWidget.
+class _PillarCard extends StatelessWidget {
   final _PillarItem pillar;
   final bool isDark;
 
@@ -154,99 +103,70 @@ class _PillarCard extends StatefulWidget {
   });
 
   @override
-  State<_PillarCard> createState() => _PillarCardState();
-}
-
-class _PillarCardState extends State<_PillarCard> {
-  bool isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final cardBg = widget.isDark ? AppTheme.darkCard : AppTheme.lightCard;
-    final cardHoverBg = widget.isDark ? AppTheme.darkCardHover : AppTheme.lightCardHover;
-    final border = widget.isDark ? AppTheme.darkBorder : AppTheme.lightBorder;
-    final textPrimary = widget.isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
-    final textSecondary = widget.isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
+    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
+    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => isHovered = true),
-      onExit: (_) => setState(() => isHovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: isHovered ? cardHoverBg : cardBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isHovered ? widget.pillar.color.withValues(alpha: 0.5) : border,
-            width: 1,
+    return HoverCard(
+      isDark: isDark,
+      hoverAccentColor: pillar.color,
+      borderRadius: 16,
+      padding: const EdgeInsets.all(24),
+      builder: (_) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: pillar.color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(pillar.icon, color: pillar.color, size: 22),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: pillar.color.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: pillar.color.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Text(
+                  pillar.tag,
+                  style: TextStyle(
+                    color: pillar.color,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-          boxShadow: isHovered
-              ? [
-                  BoxShadow(
-                    color: widget.pillar.color.withValues(alpha: 0.12),
-                    blurRadius: 20,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : null,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: widget.pillar.color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(widget.pillar.icon, color: widget.pillar.color, size: 22),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: widget.pillar.color.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: widget.pillar.color.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Text(
-                    widget.pillar.tag,
-                    style: TextStyle(
-                      color: widget.pillar.color,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
+          const SizedBox(height: 14),
+          Text(
+            pillar.title,
+            style: TextStyle(
+              color: textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 17,
+              letterSpacing: -0.3,
             ),
-            const SizedBox(height: 14),
-            Text(
-              widget.pillar.title,
-              style: TextStyle(
-                color: textPrimary,
-                fontWeight: FontWeight.w700,
-                fontSize: 17,
-                letterSpacing: -0.3,
-              ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            pillar.description,
+            style: TextStyle(
+              color: textSecondary,
+              fontSize: 13.5,
+              height: 1.5,
             ),
-            const SizedBox(height: 8),
-            Text(
-              widget.pillar.description,
-              style: TextStyle(
-                color: textSecondary,
-                fontSize: 13.5,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
