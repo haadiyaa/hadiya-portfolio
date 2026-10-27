@@ -241,9 +241,32 @@ class ProjectDetailModal extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Text(
-                    'Developed by Haadiya CT',
-                    style: TextStyle(color: textSecondary, fontSize: 13),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (project.companyOrContext.toLowerCase().contains('screl')) ...[
+                        Icon(
+                          Icons.verified_outlined,
+                          size: 15,
+                          color: project.accentColor,
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(
+                        project.companyOrContext.toLowerCase().contains('screl')
+                            ? 'A SCREL Product'
+                            : 'Personal Project • Developed by Haadiya CT',
+                        style: TextStyle(
+                          color: project.companyOrContext.toLowerCase().contains('screl')
+                              ? project.accentColor
+                              : textSecondary,
+                          fontWeight: project.companyOrContext.toLowerCase().contains('screl')
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
                   const Spacer(),
                   ElevatedButton(
