@@ -4,6 +4,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'providers/app_providers.dart';
 import 'theme/app_theme.dart';
+import 'widgets/effects/ambient_mesh_background.dart';
+import 'widgets/effects/scroll_progress_bar.dart';
 import 'widgets/nav_bar.dart';
 import 'widgets/hero_section.dart';
 import 'widgets/highlights_section.dart';
@@ -44,22 +46,29 @@ class PortfolioHomePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = ref.watch(isDarkModeProvider);
+    final scrollProgress = ref.watch(scrollProgressProvider);
+    final showBackToTop = ref.watch(showBackToTopProvider);
 
     final scrollController = useScrollController();
 
     final heroKey = useMemoized(() => GlobalKey(), const []);
+    final highlightsKey = useMemoized(() => GlobalKey(), const []);
     final experienceKey = useMemoized(() => GlobalKey(), const []);
     final projectsKey = useMemoized(() => GlobalKey(), const []);
     final skillsKey = useMemoized(() => GlobalKey(), const []);
     final educationKey = useMemoized(() => GlobalKey(), const []);
     final contactKey = useMemoized(() => GlobalKey(), const []);
 
-    final showBackToTop = ref.watch(showBackToTopProvider);
-
-    // Listen to scroll offset to toggle back-to-top visibility
+    // Listen to scroll offset to update scroll progress and FAB visibility
     useEffect(() {
       void listener() {
-        final shouldShow = scrollController.offset > 400;
+        if (!scrollController.hasClients) return;
+        final maxScroll = scrollController.position.maxScrollExtent;
+        final currentOffset = scrollController.offset;
+        final progress = maxScroll > 0 ? (currentOffset / maxScroll).clamp(0.0, 1.0) : 0.0;
+        ref.read(scrollProgressProvider.notifier).state = progress;
+
+        final shouldShow = currentOffset > 400;
         if (shouldShow != ref.read(showBackToTopProvider)) {
           ref.read(showBackToTopProvider.notifier).state = shouldShow;
         }
@@ -81,7 +90,15 @@ class PortfolioHomePage extends HookConsumerWidget {
     }
 
     void navigateToSection(int index) {
-      final keys = [heroKey, experienceKey, projectsKey, skillsKey, educationKey, contactKey];
+      final keys = [
+        heroKey,
+        highlightsKey,
+        experienceKey,
+        projectsKey,
+        skillsKey,
+        educationKey,
+        contactKey,
+      ];
       if (index >= 0 && index < keys.length) {
         scrollToKey(keys[index]);
       }
@@ -108,56 +125,69 @@ class PortfolioHomePage extends HookConsumerWidget {
         onOpenResume: openResume,
         onOpenContact: () => scrollToKey(contactKey),
       ),
-      body: SingleChildScrollView(
-        controller: scrollController,
-        child: Column(
+      body: AmbientMeshBackground(
+        isDark: isDark,
+        child: Stack(
           children: [
-            // 0. Hero Section & About
-            Container(
-              key: heroKey,
-              child: HeroSection(
-                isDark: isDark,
-                onExploreProjects: () => scrollToKey(projectsKey),
-                onOpenResume: openResume,
-                onContactMe: () => scrollToKey(contactKey),
+            SingleChildScrollView(
+              controller: scrollController,
+              child: Column(
+                children: [
+                  // 0. Hero Section
+                  Container(
+                    key: heroKey,
+                    child: HeroSection(
+                      isDark: isDark,
+                      onExploreProjects: () => scrollToKey(projectsKey),
+                      onOpenResume: openResume,
+                      onContactMe: () => scrollToKey(contactKey),
+                    ),
+                  ),
+
+                  // 1. Engineering Highlights & Core Pillars
+                  Container(
+                    key: highlightsKey,
+                    child: HighlightsSection(isDark: isDark),
+                  ),
+
+                  // 2. Career Experience Timeline
+                  Container(
+                    key: experienceKey,
+                    child: ExperienceSection(isDark: isDark),
+                  ),
+
+                  // 3. Featured Projects
+                  Container(
+                    key: projectsKey,
+                    child: ProjectsSection(isDark: isDark),
+                  ),
+
+                  // 4. Technical Skills Matrix
+                  Container(
+                    key: skillsKey,
+                    child: SkillsSection(isDark: isDark),
+                  ),
+
+                  // 5. Academic Foundations
+                  Container(
+                    key: educationKey,
+                    child: EducationSection(isDark: isDark),
+                  ),
+
+                  // 6. Contact & Collaboration
+                  Container(
+                    key: contactKey,
+                    child: ContactSection(isDark: isDark),
+                  ),
+
+                  // Footer Section
+                  FooterSection(isDark: isDark, onScrollToTop: scrollToTop),
+                ],
               ),
             ),
 
-            // Highlights & Core Engineering Pillars
-            HighlightsSection(isDark: isDark),
-
-            // 1. Work Experience Section
-            Container(
-              key: experienceKey,
-              child: ExperienceSection(isDark: isDark),
-            ),
-
-            // 2. Featured Projects Section
-            Container(
-              key: projectsKey,
-              child: ProjectsSection(isDark: isDark),
-            ),
-
-            // 3. Technical Skills Section
-            Container(
-              key: skillsKey,
-              child: SkillsSection(isDark: isDark),
-            ),
-
-            // 4. Education & Academic Background
-            Container(
-              key: educationKey,
-              child: EducationSection(isDark: isDark),
-            ),
-
-            // 5. Contact & Connect Section
-            Container(
-              key: contactKey,
-              child: ContactSection(isDark: isDark),
-            ),
-
-            // Footer Section
-            FooterSection(isDark: isDark, onScrollToTop: scrollToTop),
+            // Top Scroll Progress Bar
+            ScrollProgressBar(progress: scrollProgress),
           ],
         ),
       ),

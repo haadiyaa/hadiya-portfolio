@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'effects/reveal_on_scroll.dart';
+import 'effects/spotlight_card.dart';
 import 'shared_widgets.dart';
 
 class HighlightsSection extends StatelessWidget {
@@ -7,52 +9,54 @@ class HighlightsSection extends StatelessWidget {
 
   const HighlightsSection({super.key, required this.isDark});
 
+  static final _pillars = [
+    _PillarItem(
+      title: 'Enterprise ERP Architecture',
+      description:
+          'Extensive hands-on experience engineering scalable, high-throughput ERP modules spanning Sales, Inventory, CRM, and Finance.',
+      icon: Icons.business_center_rounded,
+      tag: 'Core Specialization',
+      color: AppTheme.primaryCyan,
+    ),
+    _PillarItem(
+      title: 'Offline-First & Auto-Sync',
+      description:
+          'Designing resilient local persistence systems with SQLite and SQFlite, equipped with seamless background server synchronization.',
+      icon: Icons.cloud_sync_rounded,
+      tag: 'Data Reliability',
+      color: AppTheme.accentEmerald,
+    ),
+    _PillarItem(
+      title: 'Clean Architecture & State',
+      description:
+          'Production mastery of Riverpod, Hooks Riverpod, BLoC, and Provider with decoupled domain, data, and presentation layers.',
+      icon: Icons.layers_rounded,
+      tag: 'Scalability',
+      color: AppTheme.accentIndigo,
+    ),
+    _PillarItem(
+      title: 'Pixel-Perfect Figma to Flutter',
+      description:
+          'Translating design tokens, micro-interactions, and complex wireframes into responsive Flutter widgets across desktop, tablets, and mobile.',
+      icon: Icons.design_services_rounded,
+      tag: 'Design Engineering',
+      color: AppTheme.accentAmber,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final pillars = [
-      _PillarItem(
-        title: 'Enterprise ERP Architecture',
-        description:
-            'Extensive hands-on experience engineering scalable, high-throughput ERP modules spanning Sales, Inventory, CRM, and Finance.',
-        icon: Icons.business_center_rounded,
-        tag: 'Core Specialization',
-        color: AppTheme.primaryCyan,
-      ),
-      _PillarItem(
-        title: 'Offline-First & Auto-Sync',
-        description:
-            'Designing resilient local persistence systems with SQLite and SQFlite, equipped with seamless background server synchronization.',
-        icon: Icons.cloud_sync_rounded,
-        tag: 'Data Reliability',
-        color: AppTheme.accentEmerald,
-      ),
-      _PillarItem(
-        title: 'Clean Architecture & State',
-        description:
-            'Production mastery of Riverpod, Hooks Riverpod, BLoC, and Provider with decoupled domain, data, and presentation layers.',
-        icon: Icons.layers_rounded,
-        tag: 'Scalability',
-        color: AppTheme.accentIndigo,
-      ),
-      _PillarItem(
-        title: 'Pixel-Perfect Figma to Flutter',
-        description:
-            'Translating design tokens, micro-interactions, and complex wireframes into responsive Flutter widgets across desktop, tablets, and mobile.',
-        icon: Icons.design_services_rounded,
-        tag: 'Design Engineering',
-        color: AppTheme.accentAmber,
-      ),
-    ];
-
     return SectionContainer(
       verticalPadding: 40,
       children: [
-        SectionHeader(
-          tag: 'CORE PILLARS',
-          title: 'Architected for Stability, Built for Growth',
-          subtitle:
-              'Key engineering foundations that drive every application from prototype to mission-critical production.',
-          isDark: isDark,
+        RevealOnScroll(
+          child: SectionHeader(
+            tag: 'CORE PILLARS',
+            title: 'Architected for Stability, Built for Growth',
+            subtitle:
+                'Key engineering foundations that drive every application from prototype to mission-critical production.',
+            isDark: isDark,
+          ),
         ),
         const SizedBox(height: 32),
         LayoutBuilder(
@@ -62,12 +66,16 @@ class HighlightsSection extends StatelessWidget {
             return Wrap(
               spacing: 20,
               runSpacing: 20,
-              children: pillars.map((pillar) {
+              children: List.generate(_pillars.length, (i) {
+                final pillar = _pillars[i];
                 return SizedBox(
                   width: cardWidth,
-                  child: _PillarCard(pillar: pillar, isDark: isDark),
+                  child: RevealOnScroll(
+                    delay: Duration(milliseconds: 100 * i),
+                    child: _PillarCard(pillar: pillar, isDark: isDark),
+                  ),
                 );
-              }).toList(),
+              }),
             );
           },
         ),
@@ -92,25 +100,21 @@ class _PillarItem {
   });
 }
 
-/// Now uses the reusable [HoverCard] instead of a custom StatefulWidget.
 class _PillarCard extends StatelessWidget {
   final _PillarItem pillar;
   final bool isDark;
 
-  const _PillarCard({
-    required this.pillar,
-    required this.isDark,
-  });
+  const _PillarCard({required this.pillar, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
     final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
     final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
 
-    return HoverCard(
+    return SpotlightCard(
       isDark: isDark,
-      hoverAccentColor: pillar.color,
-      borderRadius: 16,
+      glowColor: pillar.color,
+      borderRadius: 18,
       padding: const EdgeInsets.all(24),
       builder: (_) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,9 +136,7 @@ class _PillarCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: pillar.color.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: pillar.color.withValues(alpha: 0.2),
-                  ),
+                  border: Border.all(color: pillar.color.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   pillar.tag,

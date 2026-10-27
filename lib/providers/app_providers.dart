@@ -8,3 +8,6 @@ final projectFilterProvider = StateProvider<String>((ref) => 'All');
 
 /// Controls back-to-top FAB visibility based on scroll offset.
 final showBackToTopProvider = StateProvider<bool>((ref) => false);
+
+/// Tracks normalized scroll progress (0.0 to 1.0) for the top progress bar.
+final scrollProgressProvider = StateProvider<double>((ref) => 0.0);
