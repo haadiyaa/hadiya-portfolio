@@ -117,19 +117,17 @@ class PortfolioHomePage extends HookConsumerWidget {
         onOpenResume: openResume,
         onOpenContact: () => scrollToKey(contactKey),
       ),
-      body: AmbientMeshBackground(
-        isDark: isDark,
-        child: Stack(
-          children: [
-            // Smooth-scrolled content wrapped in RepaintBoundary
-            RepaintBoundary(
-              child: SmoothScrollWrapper(
+      body: Stack(
+        children: [
+          // Smooth-scrolled content wrapped in RepaintBoundary
+          RepaintBoundary(
+            child: SmoothScrollWrapper(
+              controller: scrollController,
+              child: SingleChildScrollView(
                 controller: scrollController,
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
+                physics: const ClampingScrollPhysics(),
+                child: AmbientMeshBackground(
+                  isDark: isDark,
                   child: Column(
                     children: [
                       // 0. Hero Section
@@ -186,11 +184,11 @@ class PortfolioHomePage extends HookConsumerWidget {
                 ),
               ),
             ),
+          ),
 
-            // Top Scroll Progress Bar
-            ScrollProgressBar(scrollController: scrollController),
-          ],
-        ),
+          // Top Scroll Progress Bar
+          ScrollProgressBar(scrollController: scrollController),
+        ],
       ),
       floatingActionButton: BackToTopFab(
         scrollController: scrollController,

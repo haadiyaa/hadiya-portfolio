@@ -56,9 +56,8 @@ class ProjectDetailModal extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Colors.white.withValues(alpha: 0.10),
-                        const Color(0xFF101726).withValues(alpha: 0.85),
-                        project.accentColor.withValues(alpha: 0.05),
+                        const Color(0xFF232834).withValues(alpha: 0.88),
+                        const Color(0xFF141720).withValues(alpha: 0.94),
                       ],
                     )
                   : LinearGradient(
@@ -66,13 +65,13 @@ class ProjectDetailModal extends StatelessWidget {
                       end: Alignment.bottomRight,
                       colors: [
                         Colors.white.withValues(alpha: 0.95),
-                        Colors.white.withValues(alpha: 0.80),
+                        const Color(0xFFF1F5F9).withValues(alpha: 0.90),
                       ],
                     ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: isDark ? Colors.white.withValues(alpha: 0.16) : Colors.white.withValues(alpha: 0.8),
-                width: 1.4,
+                color: isDark ? Colors.white.withValues(alpha: 0.10) : Colors.white.withValues(alpha: 0.60),
+                width: 1.0,
               ),
               boxShadow: [
                 BoxShadow(

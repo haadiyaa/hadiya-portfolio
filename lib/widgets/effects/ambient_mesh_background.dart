@@ -1,10 +1,9 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import '../../theme/app_theme.dart';
 
-/// Ambient animated backdrop isolated with RepaintBoundary for maximum frame rates.
-class AmbientMeshBackground extends HookWidget {
+/// Minimal curved backdrop integrated directly into the scrolling page content.
+/// Scrolls 1:1 with the page and provides clean glowing lines for frosted glass cards to blur through.
+class AmbientMeshBackground extends StatelessWidget {
   final Widget child;
   final bool isDark;
 
@@ -16,25 +15,13 @@ class AmbientMeshBackground extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = useAnimationController(
-      duration: const Duration(seconds: 14),
-    )..repeat(reverse: true);
-
     return Stack(
       children: [
-        // Isolated background layer
+        // Background layer sized to the full scrollable height of the child
         Positioned.fill(
           child: RepaintBoundary(
-            child: AnimatedBuilder(
-              animation: controller,
-              builder: (context, _) {
-                return CustomPaint(
-                  painter: _MeshGridPainter(
-                    animationValue: controller.value,
-                    isDark: isDark,
-                  ),
-                );
-              },
+            child: CustomPaint(
+              painter: _CurvedMeshPainter(isDark: isDark),
             ),
           ),
         ),
@@ -46,81 +33,146 @@ class AmbientMeshBackground extends HookWidget {
   }
 }
 
-class _MeshGridPainter extends CustomPainter {
-  final double animationValue;
+class _CurvedMeshPainter extends CustomPainter {
   final bool isDark;
 
-  _MeshGridPainter({required this.animationValue, required this.isDark});
+  const _CurvedMeshPainter({required this.isDark});
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Subtle grid dots
-    final dotPaint = Paint()
-      ..color = isDark
-          ? Colors.white.withValues(alpha: 0.025)
-          : Colors.black.withValues(alpha: 0.035)
-      ..style = PaintingStyle.fill;
+    final w = size.width;
+    final h = size.height;
 
-    const spacing = 52.0;
-    for (double x = 0; x < size.width; x += spacing) {
-      for (double y = 0; y < size.height; y += spacing) {
-        canvas.drawCircle(Offset(x, y), 1.0, dotPaint);
-      }
-    }
+    // 1. Radiant ambient glowing spheres behind key content sections
+    final cyanBase = isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7);
+    final indigoBase = isDark ? const Color(0xFF818CF8) : const Color(0xFF6366F1);
+    final emeraldBase = isDark ? AppTheme.accentEmerald : const Color(0xFF34D399);
+    final slateBase = isDark ? const Color(0xFFE2E8F0) : const Color(0xFF64748B);
 
-    // Top-left ambient glow (Cyan)
-    final shift1 = math.sin(animationValue * 2 * math.pi) * 30;
+    // Glowing cyan sphere behind hero & upper highlights
     final cyanPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          (isDark ? AppTheme.primaryCyan : const Color(0xFF67E8F9))
-              .withValues(alpha: isDark ? 0.09 : 0.06),
+          cyanBase.withValues(alpha: isDark ? 0.22 : 0.16),
+          indigoBase.withValues(alpha: isDark ? 0.10 : 0.06),
           Colors.transparent,
         ],
+        stops: const [0.0, 0.50, 1.0],
       ).createShader(
         Rect.fromCircle(
-          center: Offset(size.width * 0.15 + shift1, size.height * 0.12 - shift1),
-          radius: size.width * 0.45,
+          center: Offset(w * 0.25, h * 0.08),
+          radius: w * 0.48,
         ),
       );
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), cyanPaint);
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), cyanPaint);
 
-    // Center-right ambient glow (Indigo)
-    final shift2 = math.cos(animationValue * 2 * math.pi) * 40;
+    // Glowing indigo sphere behind timeline & upper projects
     final indigoPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          AppTheme.accentIndigo.withValues(alpha: isDark ? 0.07 : 0.04),
+          indigoBase.withValues(alpha: isDark ? 0.20 : 0.14),
+          cyanBase.withValues(alpha: isDark ? 0.08 : 0.04),
           Colors.transparent,
         ],
+        stops: const [0.0, 0.55, 1.0],
       ).createShader(
         Rect.fromCircle(
-          center: Offset(size.width * 0.85 - shift2, size.height * 0.35 + shift2),
-          radius: size.width * 0.4,
+          center: Offset(w * 0.78, h * 0.32),
+          radius: w * 0.46,
         ),
       );
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), indigoPaint);
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), indigoPaint);
 
-    // Lower ambient glow (Emerald)
-    final shift3 = math.sin((animationValue + 0.5) * 2 * math.pi) * 25;
+    // Glowing cyan/indigo sphere behind projects & skills
+    final projectsPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          cyanBase.withValues(alpha: isDark ? 0.18 : 0.12),
+          indigoBase.withValues(alpha: isDark ? 0.09 : 0.05),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.50, 1.0],
+      ).createShader(
+        Rect.fromCircle(
+          center: Offset(w * 0.28, h * 0.56),
+          radius: w * 0.46,
+        ),
+      );
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), projectsPaint);
+
+    // Glowing emerald sphere behind education & contact
     final emeraldPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          AppTheme.accentEmerald.withValues(alpha: isDark ? 0.05 : 0.03),
+          emeraldBase.withValues(alpha: isDark ? 0.16 : 0.10),
           Colors.transparent,
         ],
+        stops: const [0.0, 1.0],
       ).createShader(
         Rect.fromCircle(
-          center: Offset(size.width * 0.3 + shift3, size.height * 0.75),
-          radius: size.width * 0.35,
+          center: Offset(w * 0.65, h * 0.82),
+          radius: w * 0.42,
         ),
       );
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), emeraldPaint);
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), emeraldPaint);
+
+    // 2. Minimal flowing curved lines traversing behind cards
+    void drawGlowPath(Path path, Color color, double coreWidth, double coreAlpha) {
+      // Soft ambient luminous halo
+      final glowPaint = Paint()
+        ..color = color.withValues(alpha: isDark ? 0.14 : 0.10)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = coreWidth * 3.4
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(path, glowPaint);
+
+      // Crisp luminous core line
+      final corePaint = Paint()
+        ..color = color.withValues(alpha: coreAlpha)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = coreWidth
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(path, corePaint);
+    }
+
+    // Line 1: Sweeps behind Hero Section & Highlights
+    final path1 = Path()
+      ..moveTo(-60, h * 0.07)
+      ..cubicTo(w * 0.30, h * 0.03, w * 0.70, h * 0.12, w + 60, h * 0.08);
+    drawGlowPath(path1, cyanBase, 2.4, isDark ? 0.60 : 0.55);
+
+    // Line 2: Flows behind Career Experience Timeline
+    final path2 = Path()
+      ..moveTo(-60, h * 0.30)
+      ..cubicTo(w * 0.35, h * 0.37, w * 0.68, h * 0.24, w + 60, h * 0.33);
+    drawGlowPath(path2, indigoBase, 2.4, isDark ? 0.58 : 0.52);
+
+    // Line 3: Sweeps across Featured Projects
+    final path3 = Path()
+      ..moveTo(-60, h * 0.50)
+      ..cubicTo(w * 0.32, h * 0.44, w * 0.68, h * 0.58, w + 60, h * 0.49);
+    drawGlowPath(path3, cyanBase, 2.4, isDark ? 0.60 : 0.55);
+
+    // Line 4: Complementary ribbon curve behind Projects
+    final path4 = Path()
+      ..moveTo(-60, h * 0.56)
+      ..cubicTo(w * 0.38, h * 0.62, w * 0.65, h * 0.50, w + 60, h * 0.60);
+    drawGlowPath(path4, slateBase, 1.8, isDark ? 0.42 : 0.40);
+
+    // Line 5: Flows behind Technical Skills & Education
+    final path5 = Path()
+      ..moveTo(-60, h * 0.76)
+      ..cubicTo(w * 0.32, h * 0.70, w * 0.68, h * 0.82, w + 60, h * 0.75);
+    drawGlowPath(path5, emeraldBase, 2.2, isDark ? 0.55 : 0.50);
+
+    // Line 6: Flows behind Contact & Footer
+    final path6 = Path()
+      ..moveTo(-60, h * 0.92)
+      ..cubicTo(w * 0.38, h * 0.96, w * 0.72, h * 0.88, w + 60, h * 0.93);
+    drawGlowPath(path6, cyanBase, 2.0, isDark ? 0.50 : 0.46);
   }
 
   @override
-  bool shouldRepaint(covariant _MeshGridPainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue ||
-        oldDelegate.isDark != isDark;
-  }
+  bool shouldRepaint(covariant _CurvedMeshPainter oldDelegate) =>
+      oldDelegate.isDark != isDark;
 }

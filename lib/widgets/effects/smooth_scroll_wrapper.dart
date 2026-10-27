@@ -28,7 +28,13 @@ class SmoothScrollWrapper extends HookWidget {
       if (event is PointerScrollEvent) {
         if (!controller.hasClients) return;
 
-        // Register with pointerSignalResolver to handle smooth scrolling
+        // Continuous precision gestures (Mac trackpad / precision wheels with small deltas < 24px)
+        // are handled natively by Flutter scroll physics for 120Hz liquid smoothness
+        if (event.scrollDelta.dy.abs() < 24.0) {
+          return;
+        }
+
+        // Register with pointerSignalResolver to handle smooth scrolling for discrete mouse wheel notches
         GestureBinding.instance.pointerSignalResolver.register(event, (resolved) {
           final scrollEvent = resolved as PointerScrollEvent;
           final max = controller.position.maxScrollExtent;
@@ -38,7 +44,7 @@ class SmoothScrollWrapper extends HookWidget {
           final current = controller.offset;
           if (targetOffset.value == null ||
               !isGliding.value ||
-              (current - targetOffset.value!).abs() > 250) {
+              (current - targetOffset.value!).abs() > 300) {
             targetOffset.value = current;
           }
 
@@ -50,8 +56,8 @@ class SmoothScrollWrapper extends HookWidget {
           controller
               .animateTo(
                 nextTarget,
-                duration: animationDuration,
-                curve: curve,
+                duration: const Duration(milliseconds: 240),
+                curve: Curves.easeOutCubic,
               )
               .whenComplete(() {
                 isGliding.value = false;

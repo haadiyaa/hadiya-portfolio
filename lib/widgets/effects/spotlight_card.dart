@@ -1,10 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import '../../theme/app_theme.dart';
 
-/// Premium iOS-inspired Liquid Glass Card with backdrop refraction,
-/// specular rim highlights, and interactive cursor-following liquid glow.
+/// Pure neutral grey frosted blur glass card with iOS liquid border and curved elevation.
 class SpotlightCard extends HookWidget {
   final Widget Function(bool isHovered) builder;
   final bool isDark;
@@ -18,7 +16,7 @@ class SpotlightCard extends HookWidget {
     required this.builder,
     required this.isDark,
     this.glowColor,
-    this.borderRadius = 22,
+    this.borderRadius = 20,
     this.padding = const EdgeInsets.all(26),
     this.onTap,
   });
@@ -26,70 +24,56 @@ class SpotlightCard extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final isHovered = useState(false);
-    final mousePos = useState<Offset>(Offset.zero);
 
-    final accent = glowColor ?? AppTheme.primaryCyan;
-
-    // Multi-stop liquid glass gradient fill
-    final glassGradient = isDark
+    // Crystal-clear translucent glass gradient (allows background curves to blur through vividly)
+    final greyGlassGradient = isDark
         ? LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.white.withValues(alpha: isHovered.value ? 0.10 : 0.06),
-              const Color(0xFF101726).withValues(alpha: isHovered.value ? 0.70 : 0.60),
-              accent.withValues(alpha: isHovered.value ? 0.08 : 0.02),
+              const Color(0xFF1E2330).withValues(alpha: isHovered.value ? 0.18 : 0.10),
+              const Color(0xFF11141E).withValues(alpha: isHovered.value ? 0.24 : 0.14),
             ],
-            stops: const [0.0, 0.65, 1.0],
+            stops: const [0.0, 1.0],
           )
         : LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.white.withValues(alpha: isHovered.value ? 0.90 : 0.78),
-              Colors.white.withValues(alpha: isHovered.value ? 0.65 : 0.52),
-              accent.withValues(alpha: isHovered.value ? 0.06 : 0.01),
+              const Color(0xFFFFFFFF).withValues(alpha: isHovered.value ? 0.42 : 0.28),
+              const Color(0xFFE2E8F0).withValues(alpha: isHovered.value ? 0.30 : 0.18),
             ],
-            stops: const [0.0, 0.7, 1.0],
+            stops: const [0.0, 1.0],
           );
 
-    // iOS Specular glass rim border
-    final glassBorderColor = isHovered.value
-        ? accent.withValues(alpha: isDark ? 0.65 : 0.55)
-        : (isDark
-            ? Colors.white.withValues(alpha: 0.13)
-            : Colors.white.withValues(alpha: 0.85));
-
     return MouseRegion(
-      onEnter: (e) {
-        isHovered.value = true;
-        mousePos.value = e.localPosition;
-      },
+      onEnter: (_) => isHovered.value = true,
       onExit: (_) => isHovered.value = false,
-      onHover: (e) => mousePos.value = e.localPosition,
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 240),
           curve: Curves.easeOutCubic,
-          transform: Matrix4.translationValues(0.0, isHovered.value ? -5.0 : 0.0, 0.0),
+          transform: Matrix4.translationValues(0.0, isHovered.value ? -4.0 : 0.0, 0.0),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(borderRadius),
             boxShadow: [
-              // Deep diffused ambient shadow
+              // Ambient elevation drop shadow
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.07),
-                blurRadius: isHovered.value ? 30 : 16,
-                offset: Offset(0, isHovered.value ? 14 : 6),
-              ),
-              // Liquid colored glow
-              if (isHovered.value)
-                BoxShadow(
-                  color: accent.withValues(alpha: isDark ? 0.22 : 0.14),
-                  blurRadius: 28,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 4),
+                color: Colors.black.withValues(
+                  alpha: isDark ? (isHovered.value ? 0.42 : 0.28) : 0.08,
                 ),
+                blurRadius: isHovered.value ? 28 : 16,
+                offset: Offset(0, isHovered.value ? 10 : 5),
+              ),
+              // Subtle specular liquid rim elevation aura
+              BoxShadow(
+                color: (isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7))
+                    .withValues(alpha: isHovered.value ? 0.08 : 0.02),
+                blurRadius: 12,
+                spreadRadius: -2,
+                offset: const Offset(0, 1),
+              ),
             ],
           ),
           child: ClipRRect(
@@ -98,19 +82,14 @@ class SpotlightCard extends HookWidget {
               filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
               child: Container(
                 decoration: BoxDecoration(
-                  gradient: glassGradient,
+                  gradient: greyGlassGradient,
                   borderRadius: BorderRadius.circular(borderRadius),
-                  border: Border.all(
-                    color: glassBorderColor,
-                    width: isHovered.value ? 1.4 : 1.1,
-                  ),
                 ),
                 child: CustomPaint(
-                  foregroundPainter: _LiquidGlassPainter(
-                    mousePos: mousePos.value,
-                    isHovered: isHovered.value,
-                    accentColor: accent,
+                  foregroundPainter: _LiquidGlassElevationPainter(
                     isDark: isDark,
+                    isHovered: isHovered.value,
+                    borderRadius: borderRadius,
                   ),
                   child: Padding(
                     padding: padding,
@@ -126,62 +105,111 @@ class SpotlightCard extends HookWidget {
   }
 }
 
-/// Paints the iOS specular rim light and interactive liquid spotlight
-class _LiquidGlassPainter extends CustomPainter {
-  final Offset mousePos;
-  final bool isHovered;
-  final Color accentColor;
+/// Paints the iOS liquid glass border with curved elevation (meniscus bevel) and micro-texture.
+class _LiquidGlassElevationPainter extends CustomPainter {
   final bool isDark;
+  final bool isHovered;
+  final double borderRadius;
 
-  _LiquidGlassPainter({
-    required this.mousePos,
-    required this.isHovered,
-    required this.accentColor,
+  const _LiquidGlassElevationPainter({
     required this.isDark,
+    required this.isHovered,
+    required this.borderRadius,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. Specular top-edge liquid rim light
-    final rimPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.topRight,
-        colors: [
-          Colors.white.withValues(alpha: isDark ? 0.35 : 0.8),
-          Colors.white.withValues(alpha: isDark ? 0.10 : 0.3),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.45, 0.85],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, 2.5));
+    final rect = Offset.zero & size;
+    final outerRRect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
 
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(1, 1, size.width - 2, 2.0),
-        const Radius.circular(16),
-      ),
-      rimPaint,
+    // 1. Outer Liquid Perimeter Edge (smooth specular gradient stroke, zero hard flat lines)
+    final borderGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: isDark
+          ? [
+              Colors.white.withValues(alpha: isHovered ? 0.34 : 0.22),
+              const Color(0xFF94A3B8).withValues(alpha: isHovered ? 0.16 : 0.10),
+              Colors.white.withValues(alpha: isHovered ? 0.08 : 0.04),
+            ]
+          : [
+              Colors.white.withValues(alpha: isHovered ? 0.85 : 0.70),
+              const Color(0xFFCBD5E1).withValues(alpha: isHovered ? 0.55 : 0.45),
+              const Color(0xFF94A3B8).withValues(alpha: isHovered ? 0.35 : 0.25),
+            ],
+      stops: const [0.0, 0.45, 1.0],
     );
 
-    // 2. Interactive liquid chromatic spotlight when hovered
-    if (isHovered) {
-      final spotlightPaint = Paint()
-        ..shader = RadialGradient(
-          colors: [
-            accentColor.withValues(alpha: isDark ? 0.12 : 0.08),
-            accentColor.withValues(alpha: 0.0),
-          ],
-        ).createShader(Rect.fromCircle(center: mousePos, radius: 190));
+    final borderPaint = Paint()
+      ..shader = borderGradient.createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = isHovered ? 1.4 : 1.1;
+    canvas.drawRRect(outerRRect, borderPaint);
 
-      canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), spotlightPaint);
+    // 2. Liquid Meniscus Curved Elevation (Inner Bevel Contour)
+    // An inset contour ring just inside the perimeter that creates the physical 2.5D curved elevation
+    final meniscusRRect = outerRRect.deflate(2.2);
+
+    // Inner light catch on the top-left curve (convex liquid surface tension)
+    final highlightGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: isDark
+          ? [
+              Colors.white.withValues(alpha: isHovered ? 0.20 : 0.12),
+              Colors.white.withValues(alpha: isHovered ? 0.06 : 0.03),
+              Colors.transparent,
+            ]
+          : [
+              Colors.white.withValues(alpha: isHovered ? 0.60 : 0.45),
+              Colors.white.withValues(alpha: 0.10),
+              Colors.transparent,
+            ],
+      stops: const [0.0, 0.35, 0.70],
+    );
+
+    final meniscusPaint = Paint()
+      ..shader = highlightGradient.createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8;
+    canvas.drawRRect(meniscusRRect, meniscusPaint);
+
+    // Inner refraction shadow on the bottom-right curve (gives physical depth/elevation)
+    final shadowGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Colors.transparent,
+        Colors.black.withValues(alpha: isDark ? (isHovered ? 0.24 : 0.16) : 0.06),
+      ],
+      stops: const [0.60, 1.0],
+    );
+
+    final shadowPaint = Paint()
+      ..shader = shadowGradient.createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6;
+    canvas.drawRRect(meniscusRRect, shadowPaint);
+
+    // 3. Microscopic Frosted Texture (fine tactile stippling)
+    final dotPaint = Paint()
+      ..color = isDark
+          ? Colors.white.withValues(alpha: 0.022)
+          : Colors.black.withValues(alpha: 0.018)
+      ..style = PaintingStyle.fill;
+
+    const step = 8.0;
+    for (double y = 4; y < size.height; y += step) {
+      final xOffset = ((y / step).round() % 2 == 0) ? 0.0 : (step / 2);
+      for (double x = 4; x < size.width; x += step) {
+        canvas.drawCircle(Offset(x + xOffset, y), 0.75, dotPaint);
+      }
     }
   }
 
   @override
-  bool shouldRepaint(covariant _LiquidGlassPainter oldDelegate) {
-    return oldDelegate.mousePos != mousePos ||
-        oldDelegate.isHovered != isHovered ||
-        oldDelegate.accentColor != accentColor ||
-        oldDelegate.isDark != isDark;
-  }
+  bool shouldRepaint(covariant _LiquidGlassElevationPainter oldDelegate) =>
+      oldDelegate.isDark != isDark ||
+      oldDelegate.isHovered != isHovered ||
+      oldDelegate.borderRadius != borderRadius;
 }
