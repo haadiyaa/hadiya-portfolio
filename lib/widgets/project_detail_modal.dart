@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/project_model.dart';
 import '../theme/app_theme.dart';
 import 'shared_widgets.dart';
@@ -20,6 +21,13 @@ class ProjectDetailModal extends StatelessWidget {
     );
   }
 
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -28,6 +36,7 @@ class ProjectDetailModal extends StatelessWidget {
     final border = isDark ? AppTheme.darkBorder : AppTheme.lightBorder;
     final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
     final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
+    final isScrelProduct = project.companyOrContext.toLowerCase().contains('screl');
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -110,7 +119,7 @@ class ProjectDetailModal extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Supported Platforms Row
+                    // Target Platforms Row
                     Text(
                       'TARGET PLATFORMS',
                       style: TextStyle(
@@ -124,44 +133,65 @@ class ProjectDetailModal extends StatelessWidget {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: project.platforms.map((p) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: project.accentColor.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: project.accentColor.withValues(alpha: 0.2),
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        ...project.platforms.map((p) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: project.accentColor.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: project.accentColor.withValues(alpha: 0.2),
+                              ),
                             ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                p.contains('Android')
-                                    ? Icons.android_rounded
-                                    : p.contains('iOS')
-                                        ? Icons.apple_rounded
-                                        : p.contains('Desktop')
-                                            ? Icons.desktop_windows_rounded
-                                            : Icons.language_rounded,
-                                size: 14,
-                                color: project.accentColor,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                p,
-                                style: TextStyle(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  p.contains('Android')
+                                      ? Icons.android_rounded
+                                      : p.contains('iOS')
+                                          ? Icons.apple_rounded
+                                          : p.contains('Desktop')
+                                              ? Icons.desktop_windows_rounded
+                                              : Icons.language_rounded,
+                                  size: 14,
                                   color: project.accentColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
                                 ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+                                const SizedBox(width: 6),
+                                Text(
+                                  p,
+                                  style: TextStyle(
+                                    color: project.accentColor,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
                     ),
+
+                    if (project.liveUrl != null) ...[
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () => _launchUrl(project.liveUrl!),
+                        icon: const Icon(Icons.open_in_new_rounded, size: 15),
+                        label: Text(project.liveUrlLabel ?? 'Open Live Product'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: project.accentColor.withValues(alpha: 0.15),
+                          foregroundColor: project.accentColor,
+                          side: BorderSide(color: project.accentColor.withValues(alpha: 0.4)),
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                        ),
+                      ),
+                    ],
 
                     const SizedBox(height: 24),
 
@@ -239,12 +269,16 @@ class ProjectDetailModal extends StatelessWidget {
                 borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
                 border: Border(top: BorderSide(color: border)),
               ),
-              child: Row(
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 10,
                 children: [
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (project.companyOrContext.toLowerCase().contains('screl')) ...[
+                      if (isScrelProduct) ...[
                         Icon(
                           Icons.verified_outlined,
                           size: 15,
@@ -253,33 +287,50 @@ class ProjectDetailModal extends StatelessWidget {
                         const SizedBox(width: 6),
                       ],
                       Text(
-                        project.companyOrContext.toLowerCase().contains('screl')
+                        isScrelProduct
                             ? 'A SCREL Product'
                             : 'Personal Project • Developed by Haadiya CT',
                         style: TextStyle(
-                          color: project.companyOrContext.toLowerCase().contains('screl')
-                              ? project.accentColor
-                              : textSecondary,
-                          fontWeight: project.companyOrContext.toLowerCase().contains('screl')
-                              ? FontWeight.w600
-                              : FontWeight.normal,
+                          color: isScrelProduct ? project.accentColor : textSecondary,
+                          fontWeight: isScrelProduct ? FontWeight.w600 : FontWeight.normal,
                           fontSize: 13,
                         ),
                       ),
                     ],
                   ),
-                  const Spacer(),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: project.accentColor,
-                      foregroundColor: Colors.black,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 8,
+                    children: [
+                      if (project.liveUrl != null)
+                        ElevatedButton.icon(
+                          onPressed: () => _launchUrl(project.liveUrl!),
+                          icon: const Icon(Icons.open_in_new_rounded, size: 15),
+                          label: Text(project.liveUrlLabel ?? 'Open Live Product'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: project.accentColor,
+                            foregroundColor: const Color(0xFF090D16),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                          ),
+                        ),
+                      OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: textPrimary,
+                          side: BorderSide(color: border),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text('Close'),
                       ),
-                    ),
-                    child: const Text('Close Details', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
                   ),
                 ],
               ),

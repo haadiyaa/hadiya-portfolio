@@ -4,7 +4,7 @@ class ProjectModel {
   final String title;
   final String subtitle;
   final String companyOrContext;
-  final String category; // 'All', 'Flutter / Mobile', 'Enterprise ERP', 'Desktop & Web'
+  final String category; // 'All', 'Flutter / Mobile', 'Desktop & Web'
   final String description;
   final String longDescription;
   final List<String> techStack;
@@ -12,6 +12,8 @@ class ProjectModel {
   final List<String> platforms;
   final IconData icon;
   final Color accentColor;
+  final String? liveUrl;
+  final String? liveUrlLabel;
 
   const ProjectModel({
     required this.title,
@@ -25,6 +27,8 @@ class ProjectModel {
     required this.platforms,
     required this.icon,
     required this.accentColor,
+    this.liveUrl,
+    this.liveUrlLabel,
   });
 
   static List<ProjectModel> get projects => [
@@ -55,6 +59,8 @@ class ProjectModel {
           platforms: ['Android', 'iOS', 'Desktop'],
           icon: Icons.restaurant_menu_rounded,
           accentColor: Color(0xFF38BDF8),
+          liveUrl: 'https://isselo.com/',
+          liveUrlLabel: 'Visit Isselo Website',
         ),
         const ProjectModel(
           title: 'SincA Reports',
@@ -82,6 +88,8 @@ class ProjectModel {
           platforms: ['Android', 'iOS', 'Web'],
           icon: Icons.insights_rounded,
           accentColor: Color(0xFF10B981),
+          liveUrl: 'https://apps.apple.com/in/app/sinca-reports/id6475162930',
+          liveUrlLabel: 'View on App Store',
         ),
         const ProjectModel(
           title: 'Hidhayah App',
@@ -136,6 +144,8 @@ class ProjectModel {
           platforms: ['Desktop (WPF)', 'Web'],
           icon: Icons.hub_rounded,
           accentColor: Color(0xFFF59E0B),
+          liveUrl: 'https://screl.com/products',
+          liveUrlLabel: 'View SincA Products',
         ),
       ];
 }
