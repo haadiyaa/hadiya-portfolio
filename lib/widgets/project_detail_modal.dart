@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/project_model.dart';
@@ -32,7 +33,6 @@ class ProjectDetailModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isMobile = size.width < 700;
-    final cardBg = isDark ? AppTheme.darkCard : AppTheme.lightCard;
     final border = isDark ? AppTheme.darkBorder : AppTheme.lightBorder;
     final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
     final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
@@ -44,20 +44,44 @@ class ProjectDetailModal extends StatelessWidget {
         horizontal: isMobile ? 16 : 40,
         vertical: 24,
       ),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 750, maxHeight: 850),
-        decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: border, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 40,
-              offset: const Offset(0, 15),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 750, maxHeight: 850),
+            decoration: BoxDecoration(
+              gradient: isDark
+                  ? LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.10),
+                        const Color(0xFF101726).withValues(alpha: 0.85),
+                        project.accentColor.withValues(alpha: 0.05),
+                      ],
+                    )
+                  : LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.95),
+                        Colors.white.withValues(alpha: 0.80),
+                      ],
+                    ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: isDark ? Colors.white.withValues(alpha: 0.16) : Colors.white.withValues(alpha: 0.8),
+                width: 1.4,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  blurRadius: 40,
+                  offset: const Offset(0, 15),
+                ),
+              ],
             ),
-          ],
-        ),
         child: Column(
           children: [
             // Header bar
@@ -338,6 +362,8 @@ class ProjectDetailModal extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }
