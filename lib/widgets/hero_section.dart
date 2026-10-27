@@ -21,7 +21,7 @@ class HeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isDesktop = size.width > 950;
+    final isDesktop = size.width >= 1050;
 
     return Container(
       width: double.infinity,

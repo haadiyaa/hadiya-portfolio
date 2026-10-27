@@ -57,7 +57,15 @@ class HeroTextContent extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 900;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 900;
+    final headingFontSize = screenWidth < 400
+        ? 28.0
+        : screenWidth < 600
+            ? 34.0
+            : screenWidth < 1100
+                ? 40.0
+                : 48.0;
     final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary;
     final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary;
 
@@ -82,7 +90,7 @@ class HeroTextContent extends HookWidget {
           text: TextSpan(
             style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',
-              fontSize: isMobile ? 36 : 52,
+              fontSize: headingFontSize,
               fontWeight: FontWeight.w800,
               letterSpacing: -1.2,
               height: 1.15,
@@ -113,7 +121,7 @@ class HeroTextContent extends HookWidget {
                       _roles[roleIndex.value],
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
-                        fontSize: isMobile ? 36 : 52,
+                        fontSize: headingFontSize,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -1.2,
                         color: Colors.white,

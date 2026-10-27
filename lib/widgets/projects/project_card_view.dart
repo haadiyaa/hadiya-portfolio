@@ -33,7 +33,7 @@ class ProjectCardView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header Bar: Icon, Platforms & Window Dots
+          // Top Row: Icon + Target Platforms
           Row(
             children: [
               Container(
@@ -44,37 +44,13 @@ class ProjectCardView extends StatelessWidget {
                 ),
                 child: Icon(project.icon, color: project.accentColor, size: 22),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      project.title,
-                      style: TextStyle(
-                        color: textPrimary,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    Text(
-                      '${project.subtitle} • ${project.companyOrContext}',
-                      style: TextStyle(
-                        color: project.accentColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Platform badge
+              const Spacer(),
               Wrap(
-                spacing: 4,
+                spacing: 6,
+                runSpacing: 4,
                 children: project.platforms.take(2).map((p) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: isDark
                           ? Colors.white.withValues(alpha: 0.06)
@@ -83,7 +59,11 @@ class ProjectCardView extends StatelessWidget {
                     ),
                     child: Text(
                       p,
-                      style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: textSecondary),
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: textSecondary,
+                      ),
                     ),
                   );
                 }).toList(),
@@ -91,7 +71,29 @@ class ProjectCardView extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
+
+          // Project Title & Subtitle
+          Text(
+            project.title,
+            style: TextStyle(
+              color: textPrimary,
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${project.subtitle} • ${project.companyOrContext}',
+            style: TextStyle(
+              color: project.accentColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
+
+          const SizedBox(height: 12),
 
           // Description
           Text(

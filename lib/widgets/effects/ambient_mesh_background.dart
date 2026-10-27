@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import '../../theme/app_theme.dart';
 
-/// Ambient animated backdrop with soft glowing gradients and subtle cybernetic grid.
+/// Ambient animated backdrop isolated with RepaintBoundary for maximum frame rates.
 class AmbientMeshBackground extends HookWidget {
   final Widget child;
   final bool isDark;
@@ -16,22 +16,32 @@ class AmbientMeshBackground extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Pulse animation controller running indefinitely
     final controller = useAnimationController(
-      duration: const Duration(seconds: 12),
+      duration: const Duration(seconds: 14),
     )..repeat(reverse: true);
 
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, _) {
-        return CustomPaint(
-          painter: _MeshGridPainter(
-            animationValue: controller.value,
-            isDark: isDark,
+    return Stack(
+      children: [
+        // Isolated background layer
+        Positioned.fill(
+          child: RepaintBoundary(
+            child: AnimatedBuilder(
+              animation: controller,
+              builder: (context, _) {
+                return CustomPaint(
+                  painter: _MeshGridPainter(
+                    animationValue: controller.value,
+                    isDark: isDark,
+                  ),
+                );
+              },
+            ),
           ),
-          child: child,
-        );
-      },
+        ),
+
+        // Foreground content layer
+        child,
+      ],
     );
   }
 }
@@ -44,14 +54,14 @@ class _MeshGridPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Draw subtle grid dots
+    // Subtle grid dots
     final dotPaint = Paint()
       ..color = isDark
           ? Colors.white.withValues(alpha: 0.025)
           : Colors.black.withValues(alpha: 0.035)
       ..style = PaintingStyle.fill;
 
-    const spacing = 48.0;
+    const spacing = 52.0;
     for (double x = 0; x < size.width; x += spacing) {
       for (double y = 0; y < size.height; y += spacing) {
         canvas.drawCircle(Offset(x, y), 1.0, dotPaint);

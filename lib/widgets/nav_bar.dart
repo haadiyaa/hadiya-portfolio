@@ -26,7 +26,7 @@ class NavBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 900;
+    final isMobile = MediaQuery.of(context).size.width < 1040;
     final cardColor = isDark
         ? AppTheme.darkCard.withValues(alpha: 0.85)
         : Colors.white.withValues(alpha: 0.85);

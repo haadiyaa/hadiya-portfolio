@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -6,6 +7,8 @@ import 'providers/app_providers.dart';
 import 'theme/app_theme.dart';
 import 'widgets/effects/ambient_mesh_background.dart';
 import 'widgets/effects/scroll_progress_bar.dart';
+import 'widgets/effects/smooth_scroll_wrapper.dart';
+import 'widgets/nav/back_to_top_fab.dart';
 import 'widgets/nav_bar.dart';
 import 'widgets/hero_section.dart';
 import 'widgets/highlights_section.dart';
@@ -35,6 +38,17 @@ class PortfolioApp extends ConsumerWidget {
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        dragDevices: {
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.touch,
+          PointerDeviceKind.stylus,
+          PointerDeviceKind.trackpad,
+        },
+      ),
       home: const PortfolioHomePage(),
     );
   }
@@ -46,9 +60,6 @@ class PortfolioHomePage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = ref.watch(isDarkModeProvider);
-    final scrollProgress = ref.watch(scrollProgressProvider);
-    final showBackToTop = ref.watch(showBackToTopProvider);
-
     final scrollController = useScrollController();
 
     final heroKey = useMemoized(() => GlobalKey(), const []);
@@ -58,25 +69,6 @@ class PortfolioHomePage extends HookConsumerWidget {
     final skillsKey = useMemoized(() => GlobalKey(), const []);
     final educationKey = useMemoized(() => GlobalKey(), const []);
     final contactKey = useMemoized(() => GlobalKey(), const []);
-
-    // Listen to scroll offset to update scroll progress and FAB visibility
-    useEffect(() {
-      void listener() {
-        if (!scrollController.hasClients) return;
-        final maxScroll = scrollController.position.maxScrollExtent;
-        final currentOffset = scrollController.offset;
-        final progress = maxScroll > 0 ? (currentOffset / maxScroll).clamp(0.0, 1.0) : 0.0;
-        ref.read(scrollProgressProvider.notifier).state = progress;
-
-        final shouldShow = currentOffset > 400;
-        if (shouldShow != ref.read(showBackToTopProvider)) {
-          ref.read(showBackToTopProvider.notifier).state = shouldShow;
-        }
-      }
-
-      scrollController.addListener(listener);
-      return () => scrollController.removeListener(listener);
-    }, [scrollController]);
 
     void scrollToKey(GlobalKey key) {
       final ctx = key.currentContext;
@@ -129,78 +121,81 @@ class PortfolioHomePage extends HookConsumerWidget {
         isDark: isDark,
         child: Stack(
           children: [
-            SingleChildScrollView(
-              controller: scrollController,
-              child: Column(
-                children: [
-                  // 0. Hero Section
-                  Container(
-                    key: heroKey,
-                    child: HeroSection(
-                      isDark: isDark,
-                      onExploreProjects: () => scrollToKey(projectsKey),
-                      onOpenResume: openResume,
-                      onContactMe: () => scrollToKey(contactKey),
-                    ),
+            // Smooth-scrolled content wrapped in RepaintBoundary
+            RepaintBoundary(
+              child: SmoothScrollWrapper(
+                controller: scrollController,
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
+                  child: Column(
+                    children: [
+                      // 0. Hero Section
+                      Container(
+                        key: heroKey,
+                        child: HeroSection(
+                          isDark: isDark,
+                          onExploreProjects: () => scrollToKey(projectsKey),
+                          onOpenResume: openResume,
+                          onContactMe: () => scrollToKey(contactKey),
+                        ),
+                      ),
 
-                  // 1. Engineering Highlights & Core Pillars
-                  Container(
-                    key: highlightsKey,
-                    child: HighlightsSection(isDark: isDark),
+                      // 1. Engineering Highlights & Core Pillars
+                      Container(
+                        key: highlightsKey,
+                        child: HighlightsSection(isDark: isDark),
+                      ),
+
+                      // 2. Career Experience Timeline
+                      Container(
+                        key: experienceKey,
+                        child: ExperienceSection(isDark: isDark),
+                      ),
+
+                      // 3. Featured Projects
+                      Container(
+                        key: projectsKey,
+                        child: ProjectsSection(isDark: isDark),
+                      ),
+
+                      // 4. Technical Skills Matrix
+                      Container(
+                        key: skillsKey,
+                        child: SkillsSection(isDark: isDark),
+                      ),
+
+                      // 5. Academic Foundations
+                      Container(
+                        key: educationKey,
+                        child: EducationSection(isDark: isDark),
+                      ),
+
+                      // 6. Contact & Collaboration
+                      Container(
+                        key: contactKey,
+                        child: ContactSection(isDark: isDark),
+                      ),
+
+                      // Footer Section
+                      FooterSection(isDark: isDark, onScrollToTop: scrollToTop),
+                    ],
                   ),
-
-                  // 2. Career Experience Timeline
-                  Container(
-                    key: experienceKey,
-                    child: ExperienceSection(isDark: isDark),
-                  ),
-
-                  // 3. Featured Projects
-                  Container(
-                    key: projectsKey,
-                    child: ProjectsSection(isDark: isDark),
-                  ),
-
-                  // 4. Technical Skills Matrix
-                  Container(
-                    key: skillsKey,
-                    child: SkillsSection(isDark: isDark),
-                  ),
-
-                  // 5. Academic Foundations
-                  Container(
-                    key: educationKey,
-                    child: EducationSection(isDark: isDark),
-                  ),
-
-                  // 6. Contact & Collaboration
-                  Container(
-                    key: contactKey,
-                    child: ContactSection(isDark: isDark),
-                  ),
-
-                  // Footer Section
-                  FooterSection(isDark: isDark, onScrollToTop: scrollToTop),
-                ],
+                ),
               ),
             ),
 
             // Top Scroll Progress Bar
-            ScrollProgressBar(progress: scrollProgress),
+            ScrollProgressBar(scrollController: scrollController),
           ],
         ),
       ),
-      floatingActionButton: showBackToTop
-          ? FloatingActionButton.small(
-              onPressed: scrollToTop,
-              backgroundColor: AppTheme.primaryCyan,
-              foregroundColor: const Color(0xFF090D16),
-              elevation: 4,
-              tooltip: 'Back to Top',
-              child: const Icon(Icons.arrow_upward_rounded),
-            )
-          : null,
+      floatingActionButton: BackToTopFab(
+        scrollController: scrollController,
+        onScrollToTop: scrollToTop,
+      ),
     );
   }
 }

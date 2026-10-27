@@ -160,15 +160,18 @@ class HeroConsoleCard extends HookWidget {
                   }),
                 ),
                 const SizedBox(width: 16),
-                // Code content
+                // Code content with horizontal scroll protection
                 Expanded(
-                  child: Text(
-                    _codeSnippets[activeTab.value],
-                    style: const TextStyle(
-                      fontFamily: 'Courier',
-                      color: Color(0xFFE6EDF3),
-                      fontSize: 12.5,
-                      height: 1.45,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Text(
+                      _codeSnippets[activeTab.value],
+                      style: const TextStyle(
+                        fontFamily: 'Courier',
+                        color: Color(0xFFE6EDF3),
+                        fontSize: 12.5,
+                        height: 1.45,
+                      ),
                     ),
                   ),
                 ),
@@ -184,15 +187,23 @@ class HeroConsoleCard extends HookWidget {
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
               border: Border(top: BorderSide(color: Color(0xFF21262D))),
             ),
-            child: const Row(
+            child: const Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 4,
               children: [
-                Icon(Icons.check_circle_outline_rounded, size: 12, color: AppTheme.accentEmerald),
-                SizedBox(width: 6),
-                Text(
-                  'Sound Null Safety',
-                  style: TextStyle(fontFamily: 'Courier', color: AppTheme.accentEmerald, fontSize: 11),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_circle_outline_rounded, size: 12, color: AppTheme.accentEmerald),
+                    SizedBox(width: 6),
+                    Text(
+                      'Sound Null Safety',
+                      style: TextStyle(fontFamily: 'Courier', color: AppTheme.accentEmerald, fontSize: 11),
+                    ),
+                  ],
                 ),
-                Spacer(),
                 Text(
                   '60 FPS Target • Dart 3.x',
                   style: TextStyle(fontFamily: 'Courier', color: Colors.white38, fontSize: 11),
