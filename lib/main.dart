@@ -83,13 +83,12 @@ class PortfolioHomePage extends HookConsumerWidget {
 
     void navigateToSection(int index) {
       final keys = [
-        heroKey,
-        highlightsKey,
-        experienceKey,
-        projectsKey,
-        skillsKey,
-        educationKey,
-        contactKey,
+        heroKey,         // 0: About
+        experienceKey,   // 1: Work Experience
+        projectsKey,     // 2: Featured Projects
+        skillsKey,       // 3: Technical Skills
+        educationKey,    // 4: Education
+        contactKey,      // 5: Contact
       ];
       if (index >= 0 && index < keys.length) {
         scrollToKey(keys[index]);

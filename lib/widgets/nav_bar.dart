@@ -107,7 +107,7 @@ class NavBar extends StatelessWidget implements PreferredSizeWidget {
               // Desktop Menu
               if (!isMobile) ...[
                 _NavItem(title: 'About', onTap: () => onNavigateToSection(0), isDark: isDark),
-                _NavItem(title: 'Highlights', onTap: () => onNavigateToSection(1), isDark: isDark),
+                _NavItem(title: 'Experience', onTap: () => onNavigateToSection(1), isDark: isDark),
                 _NavItem(title: 'Projects', onTap: () => onNavigateToSection(2), isDark: isDark),
                 _NavItem(title: 'Skills', onTap: () => onNavigateToSection(3), isDark: isDark),
                 _NavItem(title: 'Education', onTap: () => onNavigateToSection(4), isDark: isDark),
