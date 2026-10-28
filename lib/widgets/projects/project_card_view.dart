@@ -44,29 +44,34 @@ class ProjectCardView extends StatelessWidget {
                 ),
                 child: Icon(project.icon, color: project.accentColor, size: 22),
               ),
-              const Spacer(),
-              Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: project.platforms.take(2).map((p) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : Colors.black.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      p,
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
-                        color: textSecondary,
-                      ),
-                    ),
-                  );
-                }).toList(),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: project.platforms.map((p) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.06)
+                              : Colors.black.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          p,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: textSecondary,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
             ],
           ),

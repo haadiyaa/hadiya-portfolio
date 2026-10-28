@@ -4,7 +4,7 @@ class ProjectModel {
   final String title;
   final String subtitle;
   final String companyOrContext;
-  final String category; // 'All', 'Flutter / Mobile', 'Desktop & Web'
+  final List<String> categories; // e.g. ['Flutter / Mobile', 'Desktop & Web']
   final String description;
   final String longDescription;
   final List<String> techStack;
@@ -19,7 +19,7 @@ class ProjectModel {
     required this.title,
     required this.subtitle,
     required this.companyOrContext,
-    required this.category,
+    required this.categories,
     required this.description,
     required this.longDescription,
     required this.techStack,
@@ -31,16 +31,41 @@ class ProjectModel {
     this.liveUrlLabel,
   });
 
+  /// Primary category getter for backwards compatibility
+  String get category => categories.isNotEmpty ? categories.first : '';
+
+  /// Returns true if this project matches the selected filter
+  bool matchesFilter(String filter) {
+    if (filter == 'All') return true;
+    if (categories.contains(filter)) return true;
+    final lowerFilter = filter.toLowerCase();
+    if (lowerFilter.contains('web') &&
+        platforms.any((p) => p.toLowerCase().contains('web'))) {
+      return true;
+    }
+    if (lowerFilter.contains('desktop') &&
+        platforms.any((p) => p.toLowerCase().contains('desktop'))) {
+      return true;
+    }
+    if (lowerFilter.contains('mobile') &&
+        platforms.any((p) =>
+            p.toLowerCase().contains('android') ||
+            p.toLowerCase().contains('ios'))) {
+      return true;
+    }
+    return false;
+  }
+
   static List<ProjectModel> get projects => [
         const ProjectModel(
           title: 'Isselo',
           subtitle: 'Restaurant Management ERP Suite',
           companyOrContext: 'Screl Info Pvt. Ltd.',
-          category: 'Flutter / Mobile',
+          categories: ['Flutter / Mobile', 'Desktop & Web'],
           description:
-              'Full-featured restaurant management ERP with Sales, CRM, HR, and Accounting modules, built for Android, iOS, and Desktop with offline-first capabilities.',
+              'Full-featured restaurant management ERP with Sales, CRM, HR, and Accounting modules, built for Android, iOS, Desktop, and Web with offline-first capabilities.',
           longDescription:
-              'Isselo was engineered from the ground up using Clean Architecture and Riverpod state management. Designed for bustling hospitality environments where connectivity drops cannot stop dining orders, it implements robust offline local storage with SQLite and an automated background synchronization engine that seamlessly reconciles transactions when network connectivity restores.',
+              'Isselo was engineered from the ground up using Clean Architecture and Riverpod state management. Designed for bustling hospitality environments where connectivity drops cannot stop dining orders, it implements robust offline local storage with SQLite and an automated background synchronization engine that seamlessly reconciles transactions when network connectivity restores across mobile, desktop, and web clients.',
           techStack: [
             'Flutter',
             'Dart',
@@ -53,10 +78,10 @@ class ProjectModel {
           highlights: [
             'Multi-module architecture: Sales, CRM, HR, Table Management & Accounting',
             'Engineered offline-first SQLite local persistence with auto server synchronization',
-            'Cross-platform deployment spanning Android tablets, iOS, and Desktop terminals',
+            'Cross-platform deployment spanning Android tablets, iOS, Desktop terminals, and Web',
             'Clean Architecture separating presentation, domain, and data layers',
           ],
-          platforms: ['Android', 'iOS', 'Desktop'],
+          platforms: ['Android', 'iOS', 'Desktop', 'Web'],
           icon: Icons.restaurant_menu_rounded,
           accentColor: Color(0xFF38BDF8),
           liveUrl: 'https://isselo.com/',
@@ -66,7 +91,7 @@ class ProjectModel {
           title: 'SincA Reports',
           subtitle: 'Executive Business Analytics & KPI Monitor',
           companyOrContext: 'Screl Info Pvt. Ltd.',
-          category: 'Flutter / Mobile',
+          categories: ['Flutter / Mobile', 'Desktop & Web'],
           description:
               'Real-time administrative monitoring application for executives to visualize analytics, sales funnels, and enterprise performance indicators.',
           longDescription:
@@ -95,7 +120,7 @@ class ProjectModel {
           title: 'Hidhayah App',
           subtitle: 'Islamic Companion & Sensor Utilities',
           companyOrContext: 'Personal Project',
-          category: 'Flutter / Mobile',
+          categories: ['Flutter / Mobile'],
           description:
               'Cross-platform companion offering accurate astronomical prayer times, sensor-based Qibla compass alignment, and bilingual educational resources.',
           longDescription:
@@ -122,7 +147,7 @@ class ProjectModel {
           title: 'SincA ERP',
           subtitle: 'Enterprise Resource Planning Core',
           companyOrContext: 'Screl Info Pvt. Ltd.',
-          category: 'Desktop & Web',
+          categories: ['Desktop & Web'],
           description:
               'Comprehensive enterprise platform covering Sales, Stock, Inventory, Finance, HRM, CRM, and Procurement with web and desktop clients.',
           longDescription:

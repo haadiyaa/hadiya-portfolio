@@ -19,7 +19,7 @@ class ProjectsSection extends ConsumerWidget {
 
     final filteredProjects = selectedFilter == 'All'
         ? ProjectModel.projects
-        : ProjectModel.projects.where((p) => p.category == selectedFilter).toList();
+        : ProjectModel.projects.where((p) => p.matchesFilter(selectedFilter)).toList();
 
     return SectionContainer(
       children: [

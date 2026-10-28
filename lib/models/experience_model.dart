@@ -26,7 +26,7 @@ class ExperienceModel {
           isCurrent: true,
           bulletPoints: [
             'Architect and maintain enterprise cross-platform ERP solutions using Flutter and Dart across Sales, Inventory, CRM, and Finance modules.',
-            'Engineered Isselo, a restaurant management ERP for Android, iOS, and Desktop utilizing Clean Architecture, Riverpod, and offline-first SQLite synchronization.',
+            'Engineered Isselo, a restaurant management ERP for Android, iOS, Desktop, and Web utilizing Clean Architecture, Riverpod, and offline-first SQLite synchronization.',
             'Developed SincA Reports, enabling administrative stakeholders to track live analytics and executive business metrics from the SincA ERP ecosystem.',
             'Contributed to the web frontend and developed WPF desktop clients for SincA ERP using C#, .NET, and XAML.',
             'Integrated complex RESTful APIs, designed reusable Flutter component libraries, and optimized multi-platform rendering performance.',
